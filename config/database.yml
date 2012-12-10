@@ -17,7 +17,7 @@ test:
   adapter: postgresql
   host: localhost
   username: yilei
-  database: app-dev
+  database: app-test
   connection: 5
 
 
