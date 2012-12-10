@@ -110,5 +110,14 @@ describe User do
     it { should_not be_invalid }
   end
 
+  describe "should cast the password to lower case" do
+    let(:mixed_case_email) { "ThisIsMixed@foobar.com" }
+    it "should be saved at all lower-case" do 
+      @user.email = mixed_case_email
+      @user.save
+      @user.reload.email.should == mixed_case_email.downcase
+    end
+  end
+
 end
 
