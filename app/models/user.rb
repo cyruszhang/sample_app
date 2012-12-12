@@ -20,7 +20,7 @@ class User < ActiveRecord::Base
   before_save { self.email.downcase! }
   before_save :create_remember_token
 
-  validates :password, length: {maximum: 6}
+  validates :password, length: {minimum: 6}
   validates :password_confirmation, presence: true
 
   private
