@@ -3,6 +3,15 @@ require 'spec_helper'
 describe "Authentication" do
   subject { page }
 
+  describe "before signing in" do
+    before { visit root_path }
+    it { should_not have_link('Users', href: users_path) }
+    it { should_not have_selector('li', 'Profile')}
+    it { should_not have_selector('li', 'Settings')}
+    it { should_not have_link('Sign out', href: signout_path)}
+    it { should have_link('Sign in', href: signin_path)}
+  end 
+
   describe "signin page" do
     before { visit signin_path }
 
@@ -45,6 +54,76 @@ describe "Authentication" do
  
   describe "authorization" do
 
+    describe "as non-signed-in users" do
+      let(:user) { FactoryGirl.create(:user) }
+         
+      describe "visiting the user index" do
+        before { visit users_path }
+        it { should have_selector('title', text: 'Sign in') }
+      end
+      
+      describe "in the Users controller" do
+
+        describe "visiting the edit page" do
+          before { visit edit_user_path(user) }
+          it { should have_selector('title', text: 'Sign in') }
+        end
+
+        describe "submitting to the update action" do
+          before { put user_path(user) }  # direct request to get to user_controller.update action
+          specify { response.should redirect_to(signin_path) }
+        end
+        
+      end
+      
+      describe "when attempting to visit a protected page" do
+        before do
+          visit edit_user_path(user)
+          fill_in "Email",    with: user.email
+          fill_in "Password", with: user.password
+          click_button "Sign in"
+        end
+
+        describe "after signing in" do
+
+          it "should render the desired protected page" do
+            page.should have_selector('title', text: 'Edit user')
+          end
+
+					describe "when signing in again" do
+   
+						before do
+							delete signout_path
+          	  visit signin_path
+          	  fill_in "Email",    with: user.email
+         	   	fill_in "Password", with: user.password
+         	   	click_button "Sign in"
+         		end
+
+          	it "should render the default (profile) page" do
+            	page.should have_selector('title', text: user.name) 
+          	end
+ 					end
+			  end
+      end    
+    end
+     
+    describe "as wrong user" do
+      let(:user) { FactoryGirl.create(:user) }
+      let(:wrong_user) { FactoryGirl.create(:user, email: "wrong@example.com") }
+      before { sign_in user }
+
+      describe "visiting Users#edit page" do
+        before { visit edit_user_path(wrong_user) }
+        it { should_not have_selector('title', text: full_title('Edit user')) }
+      end
+
+      describe "submitting a PUT request to the Users#update action" do
+        before { put user_path(wrong_user) }
+        specify { response.should redirect_to(root_path) }
+      end
+    end
+  
     describe "as non-admin user" do
       let(:user) { FactoryGirl.create(:user) }
       let(:non_admin) { FactoryGirl.create(:user) }
@@ -56,6 +135,17 @@ describe "Authentication" do
         specify { response.should redirect_to(root_path) }        
       end
     end
+
+		describe "as admin user" do
+			let(:admin) { FactoryGirl.create(:admin) }
+			before { sign_in admin }
+
+
+			it "should not be able to delete himself" do
+				expect { delete user_path(admin) }.to change(User, :count).by(0)
+		  end
+		
+		end
 
   end
 

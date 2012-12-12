@@ -57,12 +57,36 @@ describe "User pages" do
 
     it { should have_selector('h1',    text: 'Sign up') }
     it { should have_selector('title', text: full_title('Sign up')) }
+
+    describe "signed-in user should not see signup page" do
+      before { sign_in FactoryGirl.create(:user) }
+ 
+      describe "going to signup page" do
+        before { visit signup_path }
+        specify { current_path.should == root_path }
+      end
+
+      describe "submitting a GET requet to Users#new action" do
+        before { get signup_path } 
+        specify { response.should redirect_to(root_path) }
+      end 
+      
+      describe "submitting a POST request to Users#create action" do
+        before { post users_path }   # post users_path calls Users#create
+        specify { response.should redirect_to(root_path) } 
+      end
+    end
+  
   end
   
   describe "profile page" do
     # Code to make a user variable
     let(:user) { FactoryGirl.create(:user) }
-    before { visit user_path(user) }
+    before do
+      sign_in user
+      visit user_path(user)
+    end
+
     it { should have_selector('h1',    text: user.name) }
     it { should have_selector('title', text: user.name) }
   end
@@ -93,7 +117,7 @@ describe "User pages" do
         fill_in "Name",         with: "Example User"
         fill_in "Email",        with: "user@example.com"
         fill_in "Password",     with: "foobar"
-        fill_in "Confirmation", with: "foobar"
+        fill_in "Confirm Password", with: "foobar"
       end
 
       it "should create a user" do
@@ -149,68 +173,6 @@ describe "User pages" do
       specify { user.reload.email.should == new_email }
     end
 
-  end
-
-
-  describe "authorization" do
-
-    describe "as non-signed-in users" do
-      let(:user) { FactoryGirl.create(:user) }
-         
-      describe "visiting the user index" do
-        before { visit users_path }
-        it { should have_selector('title', text: 'Sign in') }
-      end
-      
-      describe "in the Users controller" do
-
-        describe "visiting the edit page" do
-          before { visit edit_user_path(user) }
-          it { should have_selector('title', text: 'Sign in') }
-        end
-
-        describe "submitting to the update action" do
-          before { put user_path(user) }  # direct request to get to user_controller.update action
-          specify { response.should redirect_to(signin_path) }
-        end
-        
-        
-      end
-      
-      describe "when attempting to visit a protected page" do
-        before do
-          visit edit_user_path(user)
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
-        end
-
-        describe "after signing in" do
-
-          it "should render the desired protected page" do
-            page.should have_selector('title', text: 'Edit user')
-          end
-        end
-      end
-
-    end
-     
-    describe "as wrong user" do
-      let(:user) { FactoryGirl.create(:user) }
-      let(:wrong_user) { FactoryGirl.create(:user, email: "wrong@example.com") }
-      before { sign_in user }
-
-      describe "visiting Users#edit page" do
-        before { visit edit_user_path(wrong_user) }
-        it { should_not have_selector('title', text: full_title('Edit user')) }
-      end
-
-      describe "submitting a PUT request to the Users#update action" do
-        before { put user_path(wrong_user) }
-        specify { response.should redirect_to(root_path) }
-      end
-    end
-  
   end
 
 end
