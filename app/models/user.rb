@@ -12,6 +12,7 @@
 class User < ActiveRecord::Base
   attr_accessible :email, :name, :password, :password_confirmation
   has_secure_password   # password_digest in DB table USERS  https://github.com/rails/rails/blob/master/activemodel/lib/active_model/secure_password.rb
+  has_many :microposts, dependent: :destroy
 
   validates :name, presence: true, length: {maximum: 50}
 
