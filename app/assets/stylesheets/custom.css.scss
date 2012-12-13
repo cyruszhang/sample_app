@@ -217,10 +217,15 @@ input {
   float: left;
   margin-right: 10px;
 }
+.countdown {
+	color: $grayLight;
+	font-size: 1.0em;
+	margin-bottom: 10px;
+}
 aside {
   textarea {
     height: 100px;
-    margin-bottom: 5px;
+		margin-bottom: 0px;
   }
 }
 
