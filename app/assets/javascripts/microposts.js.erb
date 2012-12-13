@@ -8,5 +8,10 @@ jQuery(document).ready(function($) {
     updateCountdown();
     $('#micropost_content').change(updateCountdown);
     $('#micropost_content').keyup(updateCountdown);
+		$('#new_micropost').bind('ajax:success', function() {
+			alert("new post created!")
+		});
 });
+
+
 
