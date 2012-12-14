@@ -215,10 +215,48 @@ describe User do
 
 		describe "then unfollow" do
 			before { @user.unfollow!(other_user) }
-			its(:followed_users) { should_not include(other_user) }
+			its(:followed_users) { should_not include(other_user) }  # does not really unfollow
+		end
+
+		describe "relationships" do
+#			io = []
+			let!(:r) do
+#				io << :let! 
+				@user.relationships.dup 
+			end
+			
+			before(:each) do
+#				io << :before
+				@user.destroy 
+			end
+			
+			it "should destroy dependent relationships" do
+#				io << :example
+				r.should_not be_empty
+				r.each do |re|
+					Relationship.find_by_id(re.id).should be_nil
+				end
+#				io.should == [:let!, :before, :example]
+			end
+		end
+
+		describe "test of ordering" do
+			invocation_order = []
+			let!(:count) do
+				invocation_order << :let!
+			end
+
+			before do
+				invocation_order << :before
+			end
+
+			it "should have the ordering" do
+				invocation_order << :example
+				invocation_order.should == [:let!, :before, :example]
+			end
 		end
 
 	end
-
+	
 end
 
